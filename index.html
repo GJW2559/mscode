@@ -1,0 +1,698 @@
+<!DOCTYPE html>
+<html lang="zh-CN">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0, user-scalable=yes">
+    <title>MSCode · 在线判题系统</title>
+    <style>
+        * {
+            margin: 0;
+            padding: 0;
+            box-sizing: border-box;
+            font-family: 'Inter', 'Segoe UI', system-ui, -apple-system, 'Poppins', sans-serif;
+        }
+
+        body {
+            min-height: 100vh;
+            background: radial-gradient(circle at 10% 20%, rgba(5, 15, 30, 1) 0%, #0a0f1f 100%);
+            padding: 28px 24px;
+        }
+
+        /* 主容器玻璃效果 */
+        .glass-panel {
+            max-width: 1400px;
+            margin: 0 auto;
+            background: rgba(12, 20, 35, 0.65);
+            backdrop-filter: blur(14px);
+            border-radius: 2.5rem;
+            box-shadow: 0 25px 50px -12px rgba(0, 0, 0, 0.5), 0 0 0 1px rgba(255, 255, 255, 0.08);
+            overflow: hidden;
+            transition: all 0.2s;
+        }
+
+        /* 头部区域 */
+        .header {
+            display: flex;
+            justify-content: space-between;
+            align-items: center;
+            flex-wrap: wrap;
+            gap: 16px;
+            padding: 1.2rem 2rem;
+            background: rgba(0, 0, 0, 0.3);
+            border-bottom: 1px solid rgba(255, 255, 255, 0.1);
+        }
+        .logo h1 {
+            font-size: 2rem;
+            font-weight: 800;
+            background: linear-gradient(135deg, #FFE6C7, #B3FFFC, #FFB3BA);
+            -webkit-background-clip: text;
+            background-clip: text;
+            color: transparent;
+            letter-spacing: -0.3px;
+        }
+        .logo span {
+            font-size: 0.7rem;
+            color: #7f8ea3;
+            letter-spacing: 1px;
+        }
+        .user-badge {
+            background: #0f172fe0;
+            padding: 8px 20px;
+            border-radius: 60px;
+            font-size: 0.85rem;
+            font-weight: 500;
+            color: #cbd5f5;
+            display: flex;
+            align-items: center;
+            gap: 12px;
+        }
+        .role-tag {
+            background: #2d4a6e;
+            padding: 2px 12px;
+            border-radius: 40px;
+            font-size: 0.7rem;
+        }
+
+        /* API 配置卡片 (内嵌在左上角区域，现代化输入框) */
+        .api-config-card {
+            background: rgba(0, 0, 0, 0.5);
+            border-radius: 2rem;
+            padding: 12px 20px;
+            margin: 0 2rem 1rem 2rem;
+            backdrop-filter: blur(8px);
+            border: 1px solid rgba(255,255,255,0.15);
+            display: flex;
+            flex-wrap: wrap;
+            align-items: flex-end;
+            gap: 16px;
+            justify-content: space-between;
+        }
+        .api-input-group {
+            display: flex;
+            flex-wrap: wrap;
+            gap: 12px;
+            flex: 3;
+        }
+        .api-input-group input {
+            background: #0a0f1c;
+            border: 1px solid #2c3f5c;
+            padding: 10px 16px;
+            border-radius: 60px;
+            color: white;
+            font-size: 0.85rem;
+            outline: none;
+            transition: 0.2s;
+            min-width: 180px;
+        }
+        .api-input-group input:focus {
+            border-color: #5f9eff;
+            box-shadow: 0 0 0 2px rgba(79, 146, 255, 0.3);
+        }
+        .api-actions {
+            display: flex;
+            gap: 12px;
+        }
+        .btn {
+            border: none;
+            padding: 8px 22px;
+            border-radius: 40px;
+            font-weight: 600;
+            cursor: pointer;
+            transition: 0.2s;
+            background: #1f314a;
+            color: white;
+        }
+        .btn-primary {
+            background: #2d5f9e;
+            box-shadow: 0 2px 6px rgba(0,0,0,0.3);
+        }
+        .btn-primary:hover {
+            background: #3e76bb;
+            transform: translateY(-1px);
+        }
+        .btn-danger {
+            background: #5e2a36;
+        }
+        .btn-danger:hover {
+            background: #8b3b4b;
+        }
+
+        /* 主体布局 */
+        .dashboard {
+            display: flex;
+            flex-direction: row;
+            min-height: 580px;
+        }
+        .sidebar {
+            width: 270px;
+            background: rgba(0, 0, 0, 0.25);
+            padding: 2rem 1rem;
+            border-right: 1px solid rgba(255,255,255,0.05);
+        }
+        .sidebar h3 {
+            color: #a2b9e2;
+            font-size: 0.8rem;
+            text-transform: uppercase;
+            margin-bottom: 1rem;
+            letter-spacing: 1px;
+        }
+        .menu-btn {
+            width: 100%;
+            background: rgba(255, 255, 255, 0.03);
+            border: none;
+            margin: 8px 0;
+            padding: 12px 16px;
+            border-radius: 20px;
+            color: #eef2ff;
+            text-align: left;
+            font-weight: 500;
+            cursor: pointer;
+            transition: 0.2s;
+            display: flex;
+            align-items: center;
+            gap: 12px;
+        }
+        .menu-btn.active {
+            background: #2d4a78;
+            box-shadow: 0 4px 12px rgba(0, 0, 0, 0.2);
+        }
+        .menu-btn:not(:disabled):hover {
+            background: #2a3e60;
+        }
+        .menu-btn:disabled {
+            opacity: 0.45;
+            cursor: not-allowed;
+        }
+        .content-area {
+            flex: 1;
+            padding: 1.8rem 2rem;
+        }
+        .card-modern {
+            background: rgba(16, 24, 40, 0.7);
+            border-radius: 1.8rem;
+            padding: 1.5rem;
+            border: 1px solid rgba(255,255,255,0.1);
+            backdrop-filter: blur(2px);
+        }
+        .problem-item, .user-item {
+            background: #0b1120cc;
+            border-radius: 1.2rem;
+            padding: 1rem 1.2rem;
+            margin-bottom: 12px;
+            display: flex;
+            justify-content: space-between;
+            align-items: center;
+            flex-wrap: wrap;
+            gap: 10px;
+        }
+        .form-row {
+            display: flex;
+            flex-wrap: wrap;
+            gap: 12px;
+            margin-bottom: 20px;
+        }
+        .form-row input, .form-row textarea, .form-row select {
+            background: #0a0f1c;
+            border: 1px solid #2f4162;
+            padding: 10px 16px;
+            border-radius: 28px;
+            color: white;
+            flex: 1;
+        }
+        button.small-danger {
+            background: #8b3b4b;
+            border: none;
+            padding: 6px 14px;
+            border-radius: 30px;
+            color: white;
+            cursor: pointer;
+            margin-left: 8px;
+        }
+        .message-bar {
+            margin-top: 16px;
+            font-size: 0.85rem;
+            color: #9bc0ff;
+        }
+        @media (max-width: 780px) {
+            .dashboard { flex-direction: column; }
+            .sidebar { width: 100%; border-right: none; border-bottom: 1px solid rgba(255,255,255,0.1); display: flex; flex-wrap: wrap; gap: 8px; }
+            .sidebar h3 { display: none; }
+            .menu-btn { width: auto; flex: 1; text-align: center; justify-content: center; }
+            .api-config-card { flex-direction: column; align-items: stretch; }
+        }
+    </style>
+</head>
+<body>
+<div class="glass-panel">
+    <div class="header">
+        <div class="logo">
+            <h1 id="mscodeTitle">MSCode</h1>
+            <span>✦ 智能在线判题系统 ✦</span>
+        </div>
+        <div class="user-badge" id="userInfoPanel">
+            <span>🔐 未登录</span>
+        </div>
+    </div>
+
+    <!-- 显式 API 配置栏：不再用弹窗，完全内嵌输入框 -->
+    <div class="api-config-card">
+        <div class="api-input-group">
+            <input type="text" id="githubTokenInput" placeholder="GitHub Personal Access Token (需要有 repo 权限)" autocomplete="off">
+            <input type="text" id="githubOwnerInput" placeholder="用户名 / Owner" autocomplete="off">
+            <input type="text" id="githubRepoInput" placeholder="仓库名 / Repository" autocomplete="off">
+        </div>
+        <div class="api-actions">
+            <button class="btn btn-primary" id="saveApiBtn">🔌 连接 & 登录</button>
+            <button class="btn btn-danger" id="initRepoBtn">🗑️ 初始化仓库</button>
+        </div>
+    </div>
+
+    <div class="dashboard">
+        <div class="sidebar" id="sidebar">
+            <h3>📌 管理核心</h3>
+            <button class="menu-btn" data-view="problems-manage">📚 题目管理</button>
+            <button class="menu-btn" data-view="users-manage">👥 用户管理</button>
+            <h3 style="margin-top: 24px;">🧩 浏览模式</h3>
+            <button class="menu-btn" data-view="browse">📖 题目浏览 (公开)</button>
+        </div>
+        <div class="content-area" id="dynamicContent">
+            <div class="card-modern">
+                <div style="text-align: center; padding: 40px 20px;">
+                    <span style="font-size: 3rem;">⚡</span>
+                    <h3>欢迎使用 MSCode OJ</h3>
+                    <p>请在左侧API区域填写 GitHub Token + 仓库信息，完成认证并登录。</p>
+                    <p style="margin-top: 12px; font-size: 0.8rem;">✅ 支持跨设备同步 user.json / contests.json</p>
+                </div>
+            </div>
+        </div>
+    </div>
+</div>
+
+<script>
+    // ------------------- 全局状态 -------------------
+    let currentUser = null;               // { username, role }
+    let gitHubConfig = {
+        token: null,
+        owner: null,
+        repo: null,
+    };
+    let problems = [];       // 题目数组
+    let users = [];          // 用户数组
+
+    // 默认初始数据
+    const DEFAULT_USERS = [
+        { username: "root", password: "root123", role: "root" },
+        { username: "admin", password: "admin123", role: "admin" },
+        { username: "user", password: "user123", role: "user" }
+    ];
+    const DEFAULT_PROBLEMS = [
+        { id: "P1001", title: "两数之和", description: "给定整数数组 nums 和目标值 target，请返回两数下标。", difficulty: "简单" },
+        { id: "P1002", title: "反转链表", description: "反转一个单链表，返回新的头节点。", difficulty: "中等" },
+        { id: "P1003", title: "有效的括号", description: "给定一个只包括 '('，')'，'{'，'}'，'['，']' 的字符串，判断是否有效。", difficulty: "简单" }
+    ];
+
+    let currentView = "browse";   // 默认浏览
+
+    // DOM 元素
+    const dynamicContent = document.getElementById('dynamicContent');
+    const userInfoPanel = document.getElementById('userInfoPanel');
+    const saveApiBtn = document.getElementById('saveApiBtn');
+    const initRepoBtn = document.getElementById('initRepoBtn');
+    const tokenInput = document.getElementById('githubTokenInput');
+    const ownerInput = document.getElementById('githubOwnerInput');
+    const repoInput = document.getElementById('githubRepoInput');
+
+    // 辅助函数
+    function escapeHtml(str) { if(!str) return ''; return str.replace(/[&<>]/g, function(m){ if(m==='&') return '&amp;'; if(m==='<') return '&lt;'; if(m==='>') return '&gt;'; return m;}); }
+    
+    function updateUserUI() {
+        if(currentUser) {
+            userInfoPanel.innerHTML = `<span>👤 ${escapeHtml(currentUser.username)}</span><span class="role-tag">${escapeHtml(currentUser.role)}</span>`;
+        } else {
+            userInfoPanel.innerHTML = `<span>🔐 未登录</span>`;
+        }
+        // 更新侧边栏权限
+        const problemManageBtn = document.querySelector('[data-view="problems-manage"]');
+        const userManageBtn = document.querySelector('[data-view="users-manage"]');
+        if(problemManageBtn) problemManageBtn.disabled = !(currentUser && (currentUser.role === 'root' || currentUser.role === 'admin'));
+        if(userManageBtn) userManageBtn.disabled = !(currentUser && currentUser.role === 'root');
+    }
+
+    // GitHub API 辅助: 获取文件 SHA
+    async function getFileSha(filename) {
+        if(!gitHubConfig.token || !gitHubConfig.owner || !gitHubConfig.repo) return null;
+        const url = `https://api.github.com/repos/${gitHubConfig.owner}/${gitHubConfig.repo}/contents/${filename}`;
+        try {
+            const res = await fetch(url, { headers: { 'Authorization': `token ${gitHubConfig.token}` } });
+            if(res.status === 200) { const data = await res.json(); return data.sha; }
+            return null;
+        } catch(e) { return null; }
+    }
+
+    // 保存通用文件 (user.json / contests.json)
+    async function saveJSONToGitHub(filename, dataObj) {
+        if(!gitHubConfig.token || !gitHubConfig.owner || !gitHubConfig.repo) {
+            console.warn("未配置完整GitHub信息，仅本地更改");
+            return false;
+        }
+        const content = JSON.stringify(dataObj, null, 2);
+        const encoded = btoa(unescape(encodeURIComponent(content)));
+        const sha = await getFileSha(filename);
+        const url = `https://api.github.com/repos/${gitHubConfig.owner}/${gitHubConfig.repo}/contents/${filename}`;
+        const body = {
+            message: `Update ${filename} from MSCode OJ`,
+            content: encoded,
+            branch: "main"
+        };
+        if(sha) body.sha = sha;
+        try {
+            const resp = await fetch(url, {
+                method: 'PUT',
+                headers: { 'Authorization': `token ${gitHubConfig.token}`, 'Accept': 'application/vnd.github.v3+json' },
+                body: JSON.stringify(body)
+            });
+            if(!resp.ok) throw new Error(`Save ${filename} failed`);
+            return true;
+        } catch(err) { console.error(err); alert(`保存 ${filename} 失败，检查token/仓库权限`); return false; }
+    }
+
+    // 从GitHub加载全部数据
+    async function loadAllFromGitHub() {
+        if(!gitHubConfig.token || !gitHubConfig.owner || !gitHubConfig.repo) return false;
+        // 加载 user.json
+        const userSha = await getFileSha('user.json');
+        if(userSha) {
+            const url = `https://api.github.com/repos/${gitHubConfig.owner}/${gitHubConfig.repo}/contents/user.json`;
+            const res = await fetch(url, { headers: { 'Authorization': `token ${gitHubConfig.token}` } });
+            if(res.ok) {
+                const data = await res.json();
+                const decoded = JSON.parse(atob(data.content));
+                if(decoded.users) users = decoded.users;
+            }
+        } else {
+            // 不存在则初始化默认用户并上传
+            users = JSON.parse(JSON.stringify(DEFAULT_USERS));
+            await saveJSONToGitHub('user.json', { users });
+        }
+        // 加载 contests.json (题目数据)
+        const contestSha = await getFileSha('contests.json');
+        if(contestSha) {
+            const url = `https://api.github.com/repos/${gitHubConfig.owner}/${gitHubConfig.repo}/contents/contests.json`;
+            const res = await fetch(url, { headers: { 'Authorization': `token ${gitHubConfig.token}` } });
+            if(res.ok) {
+                const data = await res.json();
+                const decoded = JSON.parse(atob(data.content));
+                if(decoded.problems) problems = decoded.problems;
+                else if(decoded.contests) problems = decoded.contests; // 兼容
+            }
+        } else {
+            problems = JSON.parse(JSON.stringify(DEFAULT_PROBLEMS));
+            await saveJSONToGitHub('contests.json', { problems });
+        }
+        return true;
+    }
+
+    // 保存题目到 contests.json
+    async function syncProblemsToGitHub() {
+        await saveJSONToGitHub('contests.json', { problems });
+    }
+    async function syncUsersToGitHub() {
+        await saveJSONToGitHub('user.json', { users });
+    }
+
+    // 登录验证 (基于 users 数组)
+    async function performLogin(username, password) {
+        const found = users.find(u => u.username === username && u.password === password);
+        if(found) {
+            currentUser = { username: found.username, role: found.role };
+            updateUserUI();
+            renderCurrentView();
+            return true;
+        }
+        return false;
+    }
+
+    // 核心登录界面：连接API并弹出登录框
+    async function connectAndLogin() {
+        const token = tokenInput.value.trim();
+        const owner = ownerInput.value.trim();
+        const repo = repoInput.value.trim();
+        if(!token || !owner || !repo) {
+            alert("请完整填写 GitHub Token, 用户名, 仓库名");
+            return;
+        }
+        gitHubConfig.token = token;
+        gitHubConfig.owner = owner;
+        gitHubConfig.repo = repo;
+        
+        // 尝试加载数据
+        const success = await loadAllFromGitHub();
+        if(!success) {
+            alert("连接失败：无法访问仓库，请检查 Token 权限以及仓库是否存在");
+            return;
+        }
+        // 弹出登录框（内嵌风格）
+        const loginUsername = prompt("🔑 登录 MSCode\n请输入用户名", "user");
+        if(!loginUsername) return;
+        const loginPass = prompt("请输入密码");
+        const ok = await performLogin(loginUsername, loginPass);
+        if(ok) {
+            alert(`欢迎回来，${loginUsername} (${currentUser.role})`);
+            renderCurrentView();
+        } else {
+            alert("用户名或密码错误，请检查 user.json 中的凭证。默认 root/root123, admin/admin123, user/user123");
+        }
+    }
+
+    // 初始化仓库: 清空+重建 user.json 和 contests.json
+    async function initializeRepo() {
+        if(!gitHubConfig.token || !gitHubConfig.owner || !gitHubConfig.repo) {
+            alert("请先填写完整的 GitHub API 信息 (Token/用户名/仓库名)");
+            return;
+        }
+        if(confirm("⚠️ 初始化将清空远程仓库中的 user.json 和 contests.json，恢复为默认题目和默认用户(root/admin/user)。确定吗？")) {
+            users = JSON.parse(JSON.stringify(DEFAULT_USERS));
+            problems = JSON.parse(JSON.stringify(DEFAULT_PROBLEMS));
+            await syncUsersToGitHub();
+            await syncProblemsToGitHub();
+            alert("初始化完成！已重置 user.json 和 contests.json");
+            if(currentUser) {
+                // 如果当前登录状态，刷新当前视图
+                renderCurrentView();
+            } else {
+                renderCurrentView();
+            }
+        }
+    }
+
+    // ---------- 渲染各个视图 ----------
+    function renderProblemManage() {
+        if(!currentUser || !(currentUser.role === 'root' || currentUser.role === 'admin')) {
+            dynamicContent.innerHTML = `<div class="card-modern"><h3>⛔ 无权限</h3><p>只有 root 或 admin 可以管理题目。</p></div>`;
+            return;
+        }
+        let html = `
+            <div class="card-modern">
+                <h2>📝 题目管理 (${currentUser.role === 'root' ? '超级管理员' : '管理员'})</h2>
+                <div class="form-row">
+                    <input type="text" id="probId" placeholder="ID (例: P1004)" />
+                    <input type="text" id="probTitle" placeholder="题目名称" />
+                    <input type="text" id="probDiff" placeholder="难度 简单/中等/困难" />
+                </div>
+                <div class="form-row">
+                    <textarea id="probDesc" rows="2" placeholder="题目描述" style="flex:2"></textarea>
+                    <button class="btn btn-primary" id="addProblemBtn" style="align-self:center;">➕ 添加题目</button>
+                </div>
+                <hr style="border-color:#2f4162; margin: 18px 0;">
+                <div id="problemListAdmin"></div>
+            </div>
+        `;
+        dynamicContent.innerHTML = html;
+        refreshProblemAdminList();
+        document.getElementById('addProblemBtn')?.addEventListener('click', async () => {
+            const id = document.getElementById('probId').value.trim();
+            const title = document.getElementById('probTitle').value.trim();
+            const desc = document.getElementById('probDesc').value.trim();
+            const diff = document.getElementById('probDiff').value.trim() || "普通";
+            if(!id || !title) { alert("ID和标题不能为空"); return; }
+            if(problems.find(p => p.id === id)) { alert("题目ID已存在"); return; }
+            problems.push({ id, title, description: desc, difficulty: diff });
+            await syncProblemsToGitHub();
+            refreshProblemAdminList();
+        });
+    }
+    function refreshProblemAdminList() {
+        const container = document.getElementById('problemListAdmin');
+        if(!container) return;
+        if(problems.length === 0) { container.innerHTML = "<div>暂无题目，添加吧</div>"; return; }
+        container.innerHTML = problems.map(p => `
+            <div class="problem-item">
+                <div><strong>${escapeHtml(p.id)}</strong> · ${escapeHtml(p.title)} <span class="role-tag">${escapeHtml(p.difficulty)}</span><br/><small>${escapeHtml(p.description.substring(0,70))}</small></div>
+                <div>
+                    <button class="btn" style="background:#335; padding:6px 14px;" onclick="editProblem('${p.id}')">✏️ 编辑</button>
+                    <button class="small-danger" onclick="deleteProblemById('${p.id}')">删除</button>
+                </div>
+            </div>
+        `).join('');
+    }
+    window.editProblem = async (id) => {
+        const prob = problems.find(p => p.id === id);
+        if(!prob) return;
+        const newTitle = prompt("修改标题", prob.title); if(newTitle !== null) prob.title = newTitle;
+        const newDesc = prompt("修改描述", prob.description); if(newDesc !== null) prob.description = newDesc;
+        const newDiff = prompt("修改难度", prob.difficulty); if(newDiff !== null) prob.difficulty = newDiff;
+        await syncProblemsToGitHub();
+        refreshProblemAdminList();
+        if(currentView === 'browse') renderCurrentView();
+    };
+    window.deleteProblemById = async (id) => {
+        if(confirm(`删除题目 ${id} ?`)) {
+            problems = problems.filter(p => p.id !== id);
+            await syncProblemsToGitHub();
+            refreshProblemAdminList();
+            if(currentView === 'browse') renderCurrentView();
+        }
+    };
+
+    // 用户管理 (仅 root)
+    function renderUserManage() {
+        if(!currentUser || currentUser.role !== 'root') {
+            dynamicContent.innerHTML = `<div class="card-modern"><h3>⛔ 权限不足</h3><p>只有 root 可以管理用户。</p></div>`;
+            return;
+        }
+        let html = `
+            <div class="card-modern">
+                <h2>👑 用户管理 (root)</h2>
+                <div class="form-row">
+                    <input type="text" id="newUserName" placeholder="用户名" />
+                    <input type="password" id="newUserPass" placeholder="密码" />
+                    <select id="newUserRole"><option value="user">user</option><option value="admin">admin</option></select>
+                    <button class="btn btn-primary" id="createUserBtn">➕ 创建用户</button>
+                </div>
+                <div id="userListContainer"></div>
+            </div>
+        `;
+        dynamicContent.innerHTML = html;
+        refreshUserListUI();
+        document.getElementById('createUserBtn')?.addEventListener('click', async () => {
+            const uname = document.getElementById('newUserName').value.trim();
+            const pwd = document.getElementById('newUserPass').value.trim();
+            const role = document.getElementById('newUserRole').value;
+            if(!uname || !pwd) { alert("用户名/密码不能为空"); return; }
+            if(users.find(u => u.username === uname)) { alert("用户已存在"); return; }
+            users.push({ username: uname, password: pwd, role });
+            await syncUsersToGitHub();
+            refreshUserListUI();
+        });
+    }
+    function refreshUserListUI() {
+        const container = document.getElementById('userListContainer');
+        if(!container) return;
+        if(users.length === 0) { container.innerHTML = "<div>暂无用户</div>"; return; }
+        container.innerHTML = users.map(u => `
+            <div class="user-item">
+                <div><strong>${escapeHtml(u.username)}</strong> [${escapeHtml(u.role)}]</div>
+                <div>
+                    ${u.role !== 'root' ? `<button class="btn" style="background:#2a4f6e;" onclick="changeUserRole('${u.username}')">改权限</button>` : ''}
+                    ${u.role !== 'root' && u.username !== currentUser?.username ? `<button class="small-danger" onclick="deleteUserByAdmin('${u.username}')">删除</button>` : ''}
+                    ${u.role === 'root' ? '<span class="role-tag">系统根用户</span>' : ''}
+                </div>
+            </div>
+        `).join('');
+    }
+    window.changeUserRole = async (username) => {
+        const user = users.find(u => u.username === username);
+        if(user && user.role !== 'root') {
+            user.role = user.role === 'admin' ? 'user' : 'admin';
+            await syncUsersToGitHub();
+            refreshUserListUI();
+        }
+    };
+    window.deleteUserByAdmin = async (username) => {
+        if(username === currentUser?.username) { alert("无法删除自己"); return; }
+        users = users.filter(u => u.username !== username);
+        await syncUsersToGitHub();
+        refreshUserListUI();
+    };
+
+    // 浏览题目 (公开)
+    function renderBrowseProblems() {
+        let problemsHtml = problems.length === 0 ? '<div>📭 暂无题目，请联系管理员添加。</div>' : problems.map(p => `
+            <div class="problem-item">
+                <div><strong>${escapeHtml(p.id)}. ${escapeHtml(p.title)}</strong> <span class="role-tag">${escapeHtml(p.difficulty)}</span><br/><span style="font-size:0.85rem;">📖 ${escapeHtml(p.description)}</span></div>
+            </div>
+        `).join('');
+        dynamicContent.innerHTML = `
+            <div class="card-modern">
+                <h2>📖 题目集 · 公开题库</h2>
+                <div style="margin-top: 20px;">${problemsHtml}</div>
+            </div>
+        `;
+    }
+
+    async function renderCurrentView() {
+        if(currentView === 'problems-manage') await renderProblemManage();
+        else if(currentView === 'users-manage') await renderUserManage();
+        else if(currentView === 'browse') renderBrowseProblems();
+        else renderBrowseProblems();
+    }
+
+    // 侧边栏事件 & 高亮
+    function bindSidebarEvents() {
+        document.querySelectorAll('.menu-btn').forEach(btn => {
+            btn.addEventListener('click', (e) => {
+                const view = btn.getAttribute('data-view');
+                if(view && !btn.disabled) {
+                    currentView = view;
+                    document.querySelectorAll('.menu-btn').forEach(b => b.classList.remove('active'));
+                    btn.classList.add('active');
+                    renderCurrentView();
+                }
+            });
+        });
+    }
+
+    // 初始化: 尝试从 localStorage 恢复上次配置（可选）
+    function loadStoredApi() {
+        const savedToken = localStorage.getItem('gh_token');
+        const savedOwner = localStorage.getItem('gh_owner');
+        const savedRepo = localStorage.getItem('gh_repo');
+        if(savedToken) tokenInput.value = savedToken;
+        if(savedOwner) ownerInput.value = savedOwner;
+        if(savedRepo) repoInput.value = savedRepo;
+        if(savedToken && savedOwner && savedRepo) {
+            gitHubConfig.token = savedToken;
+            gitHubConfig.owner = savedOwner;
+            gitHubConfig.repo = savedRepo;
+        }
+    }
+    function storeApi() {
+        localStorage.setItem('gh_token', gitHubConfig.token || '');
+        localStorage.setItem('gh_owner', gitHubConfig.owner || '');
+        localStorage.setItem('gh_repo', gitHubConfig.repo || '');
+    }
+    saveApiBtn.onclick = async () => {
+        const token = tokenInput.value.trim();
+        const owner = ownerInput.value.trim();
+        const repo = repoInput.value.trim();
+        if(!token || !owner || !repo) { alert("请填写完整信息"); return; }
+        gitHubConfig.token = token;
+        gitHubConfig.owner = owner;
+        gitHubConfig.repo = repo;
+        storeApi();
+        await connectAndLogin();
+    };
+    initRepoBtn.onclick = async () => {
+        if(!gitHubConfig.token) { alert("请先点击「连接 & 登录」配置 API"); return; }
+        await initializeRepo();
+        await loadAllFromGitHub();
+        if(currentUser) renderCurrentView();
+    };
+    
+    loadStoredApi();
+    bindSidebarEvents();
+    updateUserUI();
+    renderCurrentView();
+</script>
+</body>
+</html>
